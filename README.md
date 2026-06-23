@@ -3,6 +3,10 @@
   <h1>🩺 Respisense-ML</h1>
   <p><strong>Enterprise-Grade Medical AI for Automated Chest Disease Detection & Explainability</strong></p>
 
+  <img src="https://raw.githubusercontent.com/AyushGU12/Respisense-ML/main/static/images/medical_ai_banner.png" alt="Medical AI Dashboard" width="100%" />
+
+  <br />
+
   [![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)](#)
   [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](#)
   [![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)](#)
