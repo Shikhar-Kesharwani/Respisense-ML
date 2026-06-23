@@ -10,6 +10,11 @@ class Training:
     
     def get_base_model(self):
         self.model = tf.keras.models.load_model(self.config.Updated_Model_Path)
+        self.model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
+            metrics=["accuracy"]
+        )
 
     def train_valid_generator(self):
 
@@ -67,12 +72,37 @@ class Training:
         self.steps_per_epoch = self.train_generator.samples // self.train_generator.batch_size
         self.validation_steps = self.valid_generator.samples // self.valid_generator.batch_size
 
+        early_stopping = tf.keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            patience=5,
+            restore_best_weights=True
+        )
+
+        reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.2,
+            patience=2
+        )
+        
+        # Calculate Class Weights dynamically
+        import numpy as np
+        from sklearn.utils.class_weight import compute_class_weight
+        class_weights_array = compute_class_weight(
+            class_weight='balanced',
+            classes=np.unique(self.train_generator.classes),
+            y=self.train_generator.classes
+        )
+        class_weights_dict = dict(enumerate(class_weights_array))
+        print("Calculated Class Weights:", class_weights_dict)
+
         self.model.fit(
             self.train_generator,
             epochs=self.config.params_epochs,
             steps_per_epoch=self.steps_per_epoch,
             validation_steps=self.validation_steps,
-            validation_data=self.valid_generator
+            validation_data=self.valid_generator,
+            callbacks=[early_stopping, reduce_lr],
+            class_weight=class_weights_dict
         )
 
         self.save_model(

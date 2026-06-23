@@ -1,7 +1,37 @@
-.github/
-.jenkins/
-docs/
-Artifacts/
-Logs/
-Notebook_Experiments/
-chestenv/
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Data (Don't copy heavy local data into the container)
+Artifacts/Data_Ingestion/Data/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db

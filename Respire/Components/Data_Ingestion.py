@@ -16,6 +16,12 @@ class DataIngestion:
         try: 
             dataset_url, zip_download_dir = self.config.Source_URL, self.config.Local_Data_File
             os.makedirs("Artifacts/Data_Ingestion", exist_ok=True)
+            if os.path.exists("Artifacts/Data_Ingestion/Chest-CT-Scan-data"):
+                logging.info(f"Dataset already exists. Skipping download.")
+                return
+            if os.path.exists(zip_download_dir):
+                logging.info(f"File already exists at {zip_download_dir}. Skipping download.")
+                return
             logging.info(f"Downloading data from {dataset_url} into file {zip_download_dir}")
 
             file_id = dataset_url.split("/")[-2]
@@ -32,6 +38,9 @@ class DataIngestion:
         try:
             unzip_path = self.config.Unzip_Dir
             os.makedirs(unzip_path, exist_ok=True)
+            if os.path.exists("Artifacts/Data_Ingestion/Chest-CT-Scan-data"):
+                logging.info(f"Dataset already exists. Skipping extraction.")
+                return
             with zipfile.ZipFile(self.config.Local_Data_File, 'r') as zip_ref:
                 zip_ref.extractall(unzip_path)
             logging.info(f"Extracted data from {self.config.Local_Data_File} into {unzip_path}")
