@@ -1,33 +1,31 @@
 # Use an official Python runtime as a parent image, slim version for optimization
-FROM python:3.10-slim-buster
+FROM python:3.10-slim
 
-# Set the working directory in the container
+# Set working directory in container
 WORKDIR /app
 
-# Install system dependencies (required for OpenCV/Pillow if needed)
+# Install system dependencies required for OpenCV and image processing
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
-COPY requirements.txt .
-
-# Install any needed packages specified in requirements.txt
-# We also install flask-cors here since we'll decouple the API
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the current directory contents into the container at /app
+# Copy project files into container
 COPY . .
 
-# Expose port 8080 for the Flask API
+# Install dependencies and local Respire package
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -e .
+
+# Expose port
 EXPOSE 8080
 
-# Define environment variable for Flask
+# Environment variables
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 
-# Run app.py when the container launches
+# Run Flask application
 CMD ["python", "app.py"]

@@ -1,12 +1,7 @@
-tensorflow
-pandas 
-gdown
-dvc
-mlflow
-notebook
+tensorflow-cpu
+pandas
 numpy
 matplotlib
-seaborn
 python-box
 pyYAML
 tqdm
@@ -16,6 +11,6 @@ types-PyYAML
 scipy
 Flask
 Flask-Cors
-dagshub
 scikit-learn
--e .
+Pillow
+opencv-python-headless
