@@ -1,0 +1,25 @@
+name: Security & Secret Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for unencrypted .env files
+        run: |
+          if [ -f .env ]; then
+            echo "ERROR: Unencrypted .env file found in repo!"
+            exit 1
+          fi

@@ -167,3 +167,4 @@ Artifacts/
 *.h5
 *.pkl
 chexpert_densenet121_weights.h5
+infra/docker/.env

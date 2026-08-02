@@ -1,0 +1,15 @@
+name: Cloud Deployment Trigger
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-cloud-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify Docker build integrity
+        run: |
+          docker build -t respisense-ml:latest .
