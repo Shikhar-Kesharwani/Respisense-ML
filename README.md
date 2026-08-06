@@ -126,3 +126,28 @@ make docker-run
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat-square&logo=github)](https://github.com/AyushGU12)
 
 *This project is built under strict MLOps and HIPAA data-privacy standards. All medical datasets and raw model weights are explicitly ignored via `.gitignore`.*
+
+## Deployment
+Deployment configuration for Google Cloud Run is included via `cloudbuild.yaml`.
+
+## Deployment
+Deployment configuration for Google Cloud Run is included via `cloudbuild.yaml`.
+
+## 🚀 Cloud Deployment Architecture
+
+This project is fully optimized for cloud deployment with 100% parity to the local development environment. It supports a dual-architecture deployment model:
+
+### 1. Platform Native (PaaS)
+Pre-configured for zero-downtime deployment on platforms like Render, Vercel, or Firebase.
+- Native configuration files (e.g., ender.yaml) are included for one-click deployments.
+- Environment variables prioritize cloud APIs (Groq, Gemini, OpenAI) to ensure compatibility with free-tier memory limits.
+
+### 2. Dockerized Containers
+For isolated, infrastructure-agnostic deployment on VPS or Cloud Run.
+- **Multi-stage Dockerfile**: Optimized for lightweight, fast builds.
+- **docker-compose.yml**: Configured with strict health checks, network isolation, and unless-stopped restart policies.
+- Automatically handles local dependencies and avoids local OOM crashes by prioritizing cloud inference APIs.
+
+### 🔄 CI/CD Pipeline
+Continuous Integration and Deployment is handled via GitHub Actions.
+- Workflows are configured in .github/workflows/ to automatically test and deploy changes pushed to the main branch.
