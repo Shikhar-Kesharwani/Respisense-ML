@@ -1,31 +1,19 @@
-# Use an official Python runtime as a parent image, slim version for optimization
-FROM python:3.10-slim
 
-# Set working directory in container
+FROM python:3.11-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+FROM python:3.11-slim AS production
 WORKDIR /app
-
-# Install system dependencies required for OpenCV and image processing
-RUN apt-get update && apt-get install -y \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgl1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy project files into container
+RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 curl && rm -rf /var/lib/apt/lists/*
+RUN addgroup --system app && adduser --system --group app
+COPY --from=builder /root/.local /home/app/.local
 COPY . .
-
-# Install dependencies and local Respire package
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install -e .
-
-# Expose port
+RUN chown -R app:app /app
+USER app
+ENV PATH=/home/app/.local/bin:$PATH
 EXPOSE 8080
-
-# Environment variables
-ENV FLASK_APP=app.py
-ENV FLASK_ENV=production
-
-# Run Flask application
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
 CMD ["python", "app.py"]
