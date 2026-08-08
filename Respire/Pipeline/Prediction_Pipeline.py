@@ -1,8 +1,15 @@
 import os
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+try:
+    import tf_keras as keras
+    from tf_keras.models import load_model
+    from tf_keras.preprocessing import image
+except ImportError:
+    from tensorflow.keras.models import load_model
+    from tensorflow.keras.preprocessing import image
 from PIL import Image
 import cv2
 import base64
