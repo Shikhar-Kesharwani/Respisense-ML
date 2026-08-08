@@ -38,7 +38,7 @@ class PredictionPipeline:
         
     def _make_gradcam_heatmap(self, img_array, model, last_conv_layer_name="post_relu", pred_index=None):
         grad_model = tf.keras.models.Model(
-            [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
+            model.inputs, [model.get_layer(last_conv_layer_name).output, model.output]
         )
 
         with tf.GradientTape() as tape:

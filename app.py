@@ -57,11 +57,16 @@ def healthcheck():
 @app.route("/predict", methods=['POST'])
 @cross_origin()
 def predictRoute():
-    app_instance = get_client_app()
-    image = request.json['image']
-    decodeImage(image, app_instance.filename)
-    result = app_instance.classifier.predict()
-    return jsonify(result)
+    try:
+        app_instance = get_client_app()
+        image = request.json['image']
+        decodeImage(image, app_instance.filename)
+        result = app_instance.classifier.predict()
+        return jsonify(result)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify([{"image": f"Error: {str(e)}"}]), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
