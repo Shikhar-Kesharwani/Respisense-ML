@@ -72,8 +72,10 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        # 2. Load model
-        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"))
+        try:
+            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False, safe_mode=False)
+        except Exception:
+            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
