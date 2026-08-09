@@ -9,12 +9,19 @@ import cv2
 import base64
 
 import keras
-class CompatibleBatchNormalization(keras.layers.BatchNormalization):
+from tensorflow.keras.layers import BatchNormalization as TFBatchNormalization
+
+class CompatibleBatchNormalization(TFBatchNormalization):
     @classmethod
     def from_config(cls, config):
         if 'axis' in config and isinstance(config['axis'], list):
             config['axis'] = config['axis'][0]
         return super().from_config(config)
+
+try:
+    tf.keras.utils.get_custom_objects()['BatchNormalization'] = CompatibleBatchNormalization
+except Exception:
+    pass
 
 try:
     keras.saving.get_custom_objects()['BatchNormalization'] = CompatibleBatchNormalization
