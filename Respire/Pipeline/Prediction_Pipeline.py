@@ -9,58 +9,6 @@ import cv2
 import base64
 
 
-def _patch_keras():
-    def patch_bn_cls(cls):
-        if hasattr(cls, '__init__') and not getattr(cls, '_init_patched', False):
-            orig_init = cls.__init__
-            def patched_init(self, *args, **kwargs):
-                if 'axis' in kwargs and isinstance(kwargs['axis'], list):
-                    kwargs['axis'] = kwargs['axis'][0]
-                orig_init(self, *args, **kwargs)
-            cls.__init__ = patched_init
-            cls._init_patched = True
-        if hasattr(cls, 'from_config') and not getattr(cls, '_fc_patched', False):
-            old_fc = cls.from_config
-            @classmethod
-            def new_fc(c_cls, config):
-                if isinstance(config, dict) and 'axis' in config and isinstance(config['axis'], list):
-                    config['axis'] = config['axis'][0]
-                return old_fc(config)
-            cls.from_config = new_fc
-            cls._fc_patched = True
-            
-    def patch_il_cls(cls):
-        if hasattr(cls, 'from_config') and not getattr(cls, '_il_fc_patched', False):
-            old_fc = cls.from_config
-            @classmethod
-            def new_fc(c_cls, config):
-                if isinstance(config, dict):
-                    if 'batch_shape' in config:
-                        config['batch_input_shape'] = config.pop('batch_shape')
-                    if 'optional' in config:
-                        config.pop('optional')
-                return old_fc(config)
-            cls.from_config = new_fc
-            cls._il_fc_patched = True
-
-    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.layers.normalization.batch_normalization', 'tensorflow.python.keras.layers.normalization']:
-        try:
-            mod = __import__(mod_name, fromlist=['BatchNormalization'])
-            if hasattr(mod, 'BatchNormalization'):
-                patch_bn_cls(mod.BatchNormalization)
-        except Exception:
-            pass
-            
-    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.engine.input_layer', 'tensorflow.python.keras.engine.input_layer']:
-        try:
-            mod = __import__(mod_name, fromlist=['InputLayer'])
-            if hasattr(mod, 'InputLayer'):
-                patch_il_cls(mod.InputLayer)
-        except Exception:
-            pass
-
-_patch_keras()
-
 class PredictionPipeline:
     def __init__(self,filename):
         self.filename =filename
@@ -127,16 +75,7 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        _patch_keras()
-        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
-        h5_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.h5")
-        if os.path.exists(keras_path):
-            try:
-                model = load_model(keras_path, compile=False)
-            except Exception:
-                model = load_model(h5_path, compile=False)
-        else:
-            model = load_model(h5_path, compile=False)
+        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))

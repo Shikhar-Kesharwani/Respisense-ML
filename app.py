@@ -1,57 +1,6 @@
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
-def _global_patch_keras():
-    def patch_bn_cls(cls):
-        if hasattr(cls, '__init__') and not getattr(cls, '_init_patched', False):
-            orig_init = cls.__init__
-            def patched_init(self, *args, **kwargs):
-                if 'axis' in kwargs and isinstance(kwargs['axis'], list):
-                    kwargs['axis'] = kwargs['axis'][0]
-                orig_init(self, *args, **kwargs)
-            cls.__init__ = patched_init
-            cls._init_patched = True
-        if hasattr(cls, 'from_config') and not getattr(cls, '_fc_patched', False):
-            old_fc = cls.from_config
-            @classmethod
-            def new_fc(c_cls, config):
-                if isinstance(config, dict) and 'axis' in config and isinstance(config['axis'], list):
-                    config['axis'] = config['axis'][0]
-                return old_fc(config)
-            cls.from_config = new_fc
-            cls._fc_patched = True
-            
-    def patch_il_cls(cls):
-        if hasattr(cls, 'from_config') and not getattr(cls, '_il_fc_patched', False):
-            old_fc = cls.from_config
-            @classmethod
-            def new_fc(c_cls, config):
-                if isinstance(config, dict):
-                    if 'batch_shape' in config:
-                        config['batch_input_shape'] = config.pop('batch_shape')
-                    if 'optional' in config:
-                        config.pop('optional')
-                return old_fc(config)
-            cls.from_config = new_fc
-            cls._il_fc_patched = True
-
-    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.layers.normalization.batch_normalization', 'tensorflow.python.keras.layers.normalization']:
-        try:
-            mod = __import__(mod_name, fromlist=['BatchNormalization'])
-            if hasattr(mod, 'BatchNormalization'):
-                patch_bn_cls(mod.BatchNormalization)
-        except Exception:
-            pass
-            
-    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.engine.input_layer', 'tensorflow.python.keras.engine.input_layer']:
-        try:
-            mod = __import__(mod_name, fromlist=['InputLayer'])
-            if hasattr(mod, 'InputLayer'):
-                patch_il_cls(mod.InputLayer)
-        except Exception:
-            pass
-
-_global_patch_keras()
 from Respire.Utils import decodeImage
 from flask_cors import CORS, cross_origin
 from flask import Flask, request, jsonify, render_template
