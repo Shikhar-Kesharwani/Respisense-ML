@@ -1,27 +1,25 @@
 import os
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import numpy as np
 import tensorflow as tf
-try:
-    import tf_keras as keras
-    from tf_keras.models import load_model
-    from tf_keras.preprocessing import image
-except ImportError:
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.preprocessing import image
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 from PIL import Image
 import cv2
 import base64
 
-from tensorflow.keras.layers import BatchNormalization
-
-class CompatibleBatchNormalization(BatchNormalization):
+import keras
+class CompatibleBatchNormalization(keras.layers.BatchNormalization):
     @classmethod
     def from_config(cls, config):
         if 'axis' in config and isinstance(config['axis'], list):
             config['axis'] = config['axis'][0]
         return super().from_config(config)
+
+try:
+    keras.saving.get_custom_objects()['BatchNormalization'] = CompatibleBatchNormalization
+except Exception:
+    pass
 
 class PredictionPipeline:
     def __init__(self,filename):

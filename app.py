@@ -1,5 +1,4 @@
 import os
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 from Respire.Utils import decodeImage
 from flask_cors import CORS, cross_origin
