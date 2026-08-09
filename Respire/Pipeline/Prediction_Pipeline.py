@@ -9,6 +9,27 @@ import cv2
 import base64
 
 
+def _patch_bn():
+    def patch_cls(cls):
+        if hasattr(cls, 'from_config'):
+            old_fc = cls.from_config
+            @classmethod
+            def new_fc(c_cls, config):
+                if 'axis' in config and isinstance(config['axis'], list):
+                    config['axis'] = config['axis'][0]
+                return old_fc(config)
+            cls.from_config = new_fc
+
+    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers']:
+        try:
+            mod = __import__(mod_name, fromlist=['BatchNormalization'])
+            if hasattr(mod, 'BatchNormalization'):
+                patch_cls(mod.BatchNormalization)
+        except Exception:
+            pass
+
+_patch_bn()
+
 class PredictionPipeline:
     def __init__(self,filename):
         self.filename =filename
@@ -75,7 +96,16 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.keras"), compile=False)
+        _patch_bn()
+        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
+        h5_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.h5")
+        if os.path.exists(keras_path):
+            try:
+                model = load_model(keras_path, compile=False)
+            except Exception:
+                model = load_model(h5_path, compile=False)
+        else:
+            model = load_model(h5_path, compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
