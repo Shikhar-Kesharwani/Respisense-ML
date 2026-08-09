@@ -1,0 +1,1 @@
+Artifacts/Model_Training/SavedModel/variables/** filter=lfs diff=lfs merge=lfs -text

@@ -325,6 +325,9 @@ Artifacts/*
 !Artifacts/Model_Training/
 Artifacts/Model_Training/*
 !Artifacts/Model_Training/Trained_Model.h5
+!Artifacts/Model_Training/SavedModel/
+!Artifacts/Model_Training/SavedModel/*
+!Artifacts/Model_Training/SavedModel/**/*
 chexpert_densenet121_weights.h5
 infra/docker/.env
 
