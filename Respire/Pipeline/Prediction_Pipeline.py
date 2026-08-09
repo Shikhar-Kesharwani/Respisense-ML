@@ -14,14 +14,24 @@ from PIL import Image
 import cv2
 import base64
 
+from tensorflow.keras.layers import BatchNormalization
+
+class CompatibleBatchNormalization(BatchNormalization):
+    @classmethod
+    def from_config(cls, config):
+        if 'axis' in config and isinstance(config['axis'], list):
+            config['axis'] = config['axis'][0]
+        return super().from_config(config)
+
 class PredictionPipeline:
     def __init__(self,filename):
         self.filename =filename
         
     def _is_valid_ct_scan(self, filepath):
         """
-        Heuristic check to reject images that are clearly not CT scans (e.g. color photos).
-        CT scans are inherently grayscale, meaning R, G, and B channels are nearly identical.
+        Heuristic out-of-distribution check to ensure input image is a valid Chest CT scan.
+        Chest CT scans are grayscale (RGB values are nearly identical across channels).
+        Variance of differences between channels (R, G, B) should be minimal (< 10.0).
         """
         try:
             img = Image.open(filepath).convert('RGB')
@@ -79,10 +89,11 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
+        custom_objs = {'BatchNormalization': CompatibleBatchNormalization}
         try:
-            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False, safe_mode=False)
+            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), custom_objects=custom_objs, compile=False, safe_mode=False)
         except Exception:
-            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
+            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), custom_objects=custom_objs, compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
