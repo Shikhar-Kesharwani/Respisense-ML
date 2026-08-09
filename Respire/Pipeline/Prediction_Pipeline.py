@@ -8,23 +8,25 @@ from PIL import Image
 import cv2
 import base64
 
-import keras
-from tensorflow.keras.layers import BatchNormalization as TFBatchNormalization
-
-class CompatibleBatchNormalization(TFBatchNormalization):
-    @classmethod
-    def from_config(cls, config):
-        if 'axis' in config and isinstance(config['axis'], list):
-            config['axis'] = config['axis'][0]
-        return super().from_config(config)
+# Monkey-patch BatchNormalization.from_config for Keras 2 -> Keras 3 axis list compatibility
+def patch_bn_from_config(bn_class):
+    if hasattr(bn_class, 'from_config'):
+        orig_fc = bn_class.from_config
+        @classmethod
+        def _patched_fc(cls, config):
+            if 'axis' in config and isinstance(config['axis'], list):
+                config['axis'] = config['axis'][0]
+            return orig_fc(config)
+        bn_class.from_config = _patched_fc
 
 try:
-    tf.keras.utils.get_custom_objects()['BatchNormalization'] = CompatibleBatchNormalization
+    import keras
+    patch_bn_from_config(keras.layers.BatchNormalization)
 except Exception:
     pass
 
 try:
-    keras.saving.get_custom_objects()['BatchNormalization'] = CompatibleBatchNormalization
+    patch_bn_from_config(tf.keras.layers.BatchNormalization)
 except Exception:
     pass
 
