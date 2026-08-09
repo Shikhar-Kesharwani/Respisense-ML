@@ -74,6 +74,30 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
+        try:
+            import keras
+            bn_c = keras.layers.BatchNormalization
+            orig_fc1 = bn_c.from_config
+            @classmethod
+            def _p1(cls, config):
+                if 'axis' in config and isinstance(config['axis'], list):
+                    config['axis'] = config['axis'][0]
+                return orig_fc1(config)
+            bn_c.from_config = _p1
+        except Exception:
+            pass
+        try:
+            bn_c2 = tf.keras.layers.BatchNormalization
+            orig_fc2 = bn_c2.from_config
+            @classmethod
+            def _p2(cls, config):
+                if 'axis' in config and isinstance(config['axis'], list):
+                    config['axis'] = config['axis'][0]
+                return orig_fc2(config)
+            bn_c2.from_config = _p2
+        except Exception:
+            pass
+
         model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
