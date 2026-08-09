@@ -14,6 +14,4 @@ RUN chown -R app:app /app
 USER app
 ENV PATH=/home/app/.local/bin:$PATH
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
 CMD ["python", "app.py"]
