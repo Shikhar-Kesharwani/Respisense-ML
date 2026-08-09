@@ -1,5 +1,26 @@
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
+def _global_patch_bn():
+    def patch_cls(cls):
+        if hasattr(cls, 'from_config'):
+            old_fc = cls.from_config
+            @classmethod
+            def new_fc(c_cls, config):
+                if isinstance(config, dict) and 'axis' in config and isinstance(config['axis'], list):
+                    config['axis'] = config['axis'][0]
+                return old_fc(config)
+            cls.from_config = new_fc
+
+    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.layers.normalization.batch_normalization', 'tensorflow.python.keras.layers.normalization']:
+        try:
+            mod = __import__(mod_name, fromlist=['BatchNormalization'])
+            if hasattr(mod, 'BatchNormalization'):
+                patch_cls(mod.BatchNormalization)
+        except Exception:
+            pass
+
+_global_patch_bn()
 from Respire.Utils import decodeImage
 from flask_cors import CORS, cross_origin
 from flask import Flask, request, jsonify, render_template
