@@ -2,5 +2,17 @@ version: '3'
 services:
   application:
     image: "${IMAGE_NAME}"
+    restart: unless-stopped
     ports:
       - "8080:8080"
+    env_file: .env
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD','curl','-f','http://localhost:5000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+networks:
+  app-network:
+    driver: bridge
