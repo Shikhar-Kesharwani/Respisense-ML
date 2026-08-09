@@ -14,3 +14,4 @@ Flask-Cors
 scikit-learn
 Pillow
 opencv-python-headless
+gunicorn
