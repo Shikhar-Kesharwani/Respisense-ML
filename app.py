@@ -53,7 +53,7 @@ def home():
 @app.route("/live", methods=['GET'])
 @cross_origin()
 def healthcheck():
-    return jsonify({"status": "ok", "service": "respisense-ml"}), 200
+    return jsonify({"status": "ok", "service": "respisense-ml", "version": "v2_fea12bb"}), 200
 
 @app.route("/predict", methods=['POST'])
 @cross_origin()
