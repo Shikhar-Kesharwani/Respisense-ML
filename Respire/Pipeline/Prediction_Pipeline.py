@@ -8,19 +8,6 @@ from PIL import Image
 import cv2
 import base64
 
-from tensorflow.keras.layers import BatchNormalization
-
-class CustomBatchNormalization(BatchNormalization):
-    def __init__(self, axis=3, **kwargs):
-        if isinstance(axis, list):
-            axis = axis[0]
-        super().__init__(axis=axis, **kwargs)
-
-        @classmethod
-        def from_config(cls, config):
-            if 'axis' in config and isinstance(config['axis'], list):
-                config['axis'] = config['axis'][0]
-            return super().from_config(config)
 
 class PredictionPipeline:
     def __init__(self,filename):
@@ -88,7 +75,7 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
+        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.keras"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
