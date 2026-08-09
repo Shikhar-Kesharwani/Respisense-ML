@@ -75,7 +75,15 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
+        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
+        h5_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.h5")
+        if os.path.exists(keras_path):
+            try:
+                model = load_model(keras_path, compile=False)
+            except Exception:
+                model = load_model(h5_path, compile=False)
+        else:
+            model = load_model(h5_path, compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
