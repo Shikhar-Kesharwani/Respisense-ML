@@ -8,6 +8,20 @@ from PIL import Image
 import cv2
 import base64
 
+from tensorflow.keras.layers import BatchNormalization
+
+class CustomBatchNormalization(BatchNormalization):
+    def __init__(self, axis=3, **kwargs):
+        if isinstance(axis, list):
+            axis = axis[0]
+        super().__init__(axis=axis, **kwargs)
+
+        @classmethod
+        def from_config(cls, config):
+            if 'axis' in config and isinstance(config['axis'], list):
+                config['axis'] = config['axis'][0]
+            return super().from_config(config)
+
 class PredictionPipeline:
     def __init__(self,filename):
         self.filename =filename
@@ -74,31 +88,8 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        try:
-            import keras
-            bn_c = keras.layers.BatchNormalization
-            orig_fc1 = bn_c.from_config
-            @classmethod
-            def _p1(cls, config):
-                if 'axis' in config and isinstance(config['axis'], list):
-                    config['axis'] = config['axis'][0]
-                return orig_fc1(config)
-            bn_c.from_config = _p1
-        except Exception:
-            pass
-        try:
-            bn_c2 = tf.keras.layers.BatchNormalization
-            orig_fc2 = bn_c2.from_config
-            @classmethod
-            def _p2(cls, config):
-                if 'axis' in config and isinstance(config['axis'], list):
-                    config['axis'] = config['axis'][0]
-                return orig_fc2(config)
-            bn_c2.from_config = _p2
-        except Exception:
-            pass
-
-        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
+        with tf.keras.utils.custom_object_scope({'BatchNormalization': CustomBatchNormalization}):
+            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
