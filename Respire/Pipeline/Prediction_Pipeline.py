@@ -11,16 +11,25 @@ import base64
 
 def _patch_bn():
     def patch_cls(cls):
-        if hasattr(cls, 'from_config'):
+        if hasattr(cls, '__init__') and not getattr(cls, '_init_patched', False):
+            orig_init = cls.__init__
+            def patched_init(self, *args, **kwargs):
+                if 'axis' in kwargs and isinstance(kwargs['axis'], list):
+                    kwargs['axis'] = kwargs['axis'][0]
+                orig_init(self, *args, **kwargs)
+            cls.__init__ = patched_init
+            cls._init_patched = True
+        if hasattr(cls, 'from_config') and not getattr(cls, '_fc_patched', False):
             old_fc = cls.from_config
             @classmethod
             def new_fc(c_cls, config):
-                if 'axis' in config and isinstance(config['axis'], list):
+                if isinstance(config, dict) and 'axis' in config and isinstance(config['axis'], list):
                     config['axis'] = config['axis'][0]
                 return old_fc(config)
             cls.from_config = new_fc
+            cls._fc_patched = True
 
-    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers']:
+    for mod_name in ['tensorflow.keras.layers', 'keras.layers', 'tf_keras.layers', 'keras.src.layers.normalization.batch_normalization', 'tensorflow.python.keras.layers.normalization']:
         try:
             mod = __import__(mod_name, fromlist=['BatchNormalization'])
             if hasattr(mod, 'BatchNormalization'):
