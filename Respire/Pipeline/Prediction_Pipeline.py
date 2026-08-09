@@ -8,28 +8,6 @@ from PIL import Image
 import cv2
 import base64
 
-# Monkey-patch BatchNormalization.from_config for Keras 2 -> Keras 3 axis list compatibility
-def patch_bn_from_config(bn_class):
-    if hasattr(bn_class, 'from_config'):
-        orig_fc = bn_class.from_config
-        @classmethod
-        def _patched_fc(cls, config):
-            if 'axis' in config and isinstance(config['axis'], list):
-                config['axis'] = config['axis'][0]
-            return orig_fc(config)
-        bn_class.from_config = _patched_fc
-
-try:
-    import keras
-    patch_bn_from_config(keras.layers.BatchNormalization)
-except Exception:
-    pass
-
-try:
-    patch_bn_from_config(tf.keras.layers.BatchNormalization)
-except Exception:
-    pass
-
 class PredictionPipeline:
     def __init__(self,filename):
         self.filename =filename
@@ -96,11 +74,7 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        custom_objs = {'BatchNormalization': CompatibleBatchNormalization}
-        try:
-            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), custom_objects=custom_objs, compile=False, safe_mode=False)
-        except Exception:
-            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), custom_objects=custom_objs, compile=False)
+        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
