@@ -88,8 +88,7 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        with tf.keras.utils.custom_object_scope({'BatchNormalization': CustomBatchNormalization}):
-            model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
+        model = load_model(os.path.join("Artifacts","Model_Training", "Trained_Model.h5"), compile=False)
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))

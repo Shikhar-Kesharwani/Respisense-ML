@@ -1,5 +1,5 @@
 tensorflow-cpu==2.15.0
-tf-keras
+keras==2.15.0
 pandas
 numpy
 matplotlib
