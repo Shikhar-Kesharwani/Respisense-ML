@@ -76,15 +76,16 @@ class PredictionPipeline:
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
         keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
-        saved_model_path = os.path.join("Artifacts", "Model_Training", "SavedModel")
+        tflite_path = os.path.join("Artifacts", "Model_Training", "model.tflite")
         
-        is_user_object = False
+        is_tflite = False
         try:
             model = load_model(keras_path, compile=False)
         except Exception:
-            # Fallback to SavedModel for Render
-            model = tf.saved_model.load(saved_model_path)
-            is_user_object = True
+            # Fallback to TFLite for Render (guarantees no OOM on 512MB RAM)
+            model = tf.lite.Interpreter(model_path=tflite_path)
+            model.allocate_tensors()
+            is_tflite = True
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
@@ -92,11 +93,12 @@ class PredictionPipeline:
         test_image = np.expand_dims(test_image, axis = 0)
         
         # 3. Predict
-        if is_user_object:
-            infer = model.signatures["serving_default"]
-            preds = infer(tf.constant(test_image))
-            output_key = list(preds.keys())[0]
-            preds_array = preds[output_key].numpy()
+        if is_tflite:
+            input_details = model.get_input_details()
+            output_details = model.get_output_details()
+            model.set_tensor(input_details[0]['index'], test_image)
+            model.invoke()
+            preds_array = model.get_tensor(output_details[0]['index'])
             result = np.argmax(preds_array, axis=1)
         else:
             preds = model.predict(test_image)
@@ -106,7 +108,7 @@ class PredictionPipeline:
         
         # 4. Generate Grad-CAM Heatmap
         heatmap_base64 = ""
-        if not is_user_object:
+        if not is_tflite:
             try:
                 heatmap = self._make_gradcam_heatmap(test_image, model, last_conv_layer_name="post_relu")
                 heatmap_base64 = self._save_and_display_gradcam(self.filename, heatmap)
@@ -120,7 +122,7 @@ class PredictionPipeline:
             
         # Free memory aggressively to prevent Render OOM
         del test_image
-        if not is_user_object:
+        if not is_tflite:
             del preds
         del model
         tf.keras.backend.clear_session()
