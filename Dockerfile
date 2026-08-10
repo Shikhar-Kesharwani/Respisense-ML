@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 # Chunk pip installations to prevent Render's 512MB build RAM from OOMing
-RUN pip install --no-cache-dir --no-compile tensorflow-cpu==2.18.0
+RUN pip install --no-cache-dir --no-compile tensorflow-cpu==2.15.0
 RUN pip install --no-cache-dir --no-compile scipy pandas scikit-learn numpy
 RUN pip install --no-cache-dir --no-compile -r requirements.txt
 
