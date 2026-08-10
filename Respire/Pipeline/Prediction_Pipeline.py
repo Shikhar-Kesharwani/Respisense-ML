@@ -82,6 +82,8 @@ class PredictionPipeline:
         try:
             model = load_model(keras_path, compile=False)
         except Exception:
+            if not os.path.exists(tflite_path):
+                raise RuntimeError(f"TFLite not found at {os.path.abspath(tflite_path)}. Dir contains: {os.listdir(os.path.dirname(tflite_path))}")
             # Fallback to TFLite for Render (guarantees no OOM on 512MB RAM)
             model = tf.lite.Interpreter(model_path=tflite_path)
             model.allocate_tensors()
