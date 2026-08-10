@@ -75,13 +75,16 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
+        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
         saved_model_path = os.path.join("Artifacts", "Model_Training", "SavedModel")
-        if not os.path.exists(saved_model_path):
-            raise FileNotFoundError("SavedModel directory not found!")
+        
+        is_user_object = False
         try:
-            model = load_model(saved_model_path, compile=False)
-        except Exception as e:
-            raise RuntimeError(f"Failed to load SavedModel: {e}")
+            model = load_model(keras_path, compile=False)
+        except Exception:
+            # Fallback to SavedModel for Render
+            model = tf.saved_model.load(saved_model_path)
+            is_user_object = True
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
@@ -89,17 +92,26 @@ class PredictionPipeline:
         test_image = np.expand_dims(test_image, axis = 0)
         
         # 3. Predict
-        preds = model.predict(test_image)
-        result = np.argmax(preds, axis=1)
+        if is_user_object:
+            infer = model.signatures["serving_default"]
+            preds = infer(tf.constant(test_image))
+            output_key = list(preds.keys())[0]
+            preds_array = preds[output_key].numpy()
+            result = np.argmax(preds_array, axis=1)
+        else:
+            preds = model.predict(test_image)
+            result = np.argmax(preds, axis=1)
+            
         print("Prediction Array Output:", result)
         
         # 4. Generate Grad-CAM Heatmap
-        try:
-            heatmap = self._make_gradcam_heatmap(test_image, model, last_conv_layer_name="post_relu")
-            heatmap_base64 = self._save_and_display_gradcam(self.filename, heatmap)
-        except Exception as e:
-            print("Error generating Grad-CAM:", e)
-            heatmap_base64 = ""
+        heatmap_base64 = ""
+        if not is_user_object:
+            try:
+                heatmap = self._make_gradcam_heatmap(test_image, model, last_conv_layer_name="post_relu")
+                heatmap_base64 = self._save_and_display_gradcam(self.filename, heatmap)
+            except Exception as e:
+                print("Error generating Grad-CAM:", e)
 
         if result[0] == 1:
             prediction = 'Normal'
@@ -108,8 +120,8 @@ class PredictionPipeline:
             
         # Free memory aggressively to prevent Render OOM
         del test_image
-        del heatmap
-        del preds
+        if not is_user_object:
+            del preds
         del model
         tf.keras.backend.clear_session()
         import gc
