@@ -106,4 +106,13 @@ class PredictionPipeline:
         else:
             prediction = 'Adenocarcinoma Cancer'
             
+        # Free memory aggressively to prevent Render OOM
+        del test_image
+        del heatmap
+        del preds
+        del model
+        tf.keras.backend.clear_session()
+        import gc
+        gc.collect()
+            
         return [{ "image" : prediction, "heatmap": heatmap_base64}]

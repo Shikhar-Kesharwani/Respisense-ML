@@ -1,5 +1,13 @@
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
+import tensorflow as tf
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
 
 from Respire.Utils import decodeImage
 from flask_cors import CORS, cross_origin
@@ -54,7 +62,7 @@ def home():
 @app.route("/live", methods=['GET'])
 @cross_origin()
 def healthcheck():
-    return jsonify({"status": "ok", "service": "respisense-ml", "version": "v6_gunicorn_fix"}), 200
+    return jsonify({"status": "ok", "service": "respisense-ml", "version": "v7_memory_optimized"}), 200
 
 @app.route("/predict", methods=['POST'])
 @cross_origin()
@@ -72,4 +80,4 @@ def predictRoute():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, threaded=False)
