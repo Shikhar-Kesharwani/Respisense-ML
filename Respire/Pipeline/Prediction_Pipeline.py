@@ -75,13 +75,13 @@ class PredictionPipeline:
         if not self._is_valid_ct_scan(self.filename):
             return [{ "image" : "Rejected: Please upload a valid Chest CT Scan."}]
             
-        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.keras")
+        keras_path = os.path.join("Artifacts", "Model_Training", "Trained_Model.h5")
         if not os.path.exists(keras_path):
-            raise FileNotFoundError("Trained_Model.keras not found!")
+            raise FileNotFoundError("Trained_Model.h5 not found!")
         try:
             model = load_model(keras_path, compile=False)
         except Exception as e:
-            raise RuntimeError(f"Failed to load .keras model: {e}")
+            raise RuntimeError(f"Failed to load .h5 model: {e}")
 
         imagename = self.filename
         test_image = image.load_img(imagename, target_size = (224,224))
