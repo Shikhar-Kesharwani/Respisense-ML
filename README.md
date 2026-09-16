@@ -1,9 +1,9 @@
-<div align="center">
+﻿<div align="center">
   <img src="https://raw.githubusercontent.com/KalyanM45/End-to-End-Chest-Disease-Classification/main/static/favicon.ico" alt="Respisense Logo" width="120" />
   <h1>🩺 Respisense-ML</h1>
   <p><strong>Enterprise-Grade Medical AI for Automated Chest Disease Detection & Explainability</strong></p>
 
-  <img src="https://raw.githubusercontent.com/AyushGU12/Respisense-ML/main/static/images/medical_ai_banner.png" alt="Medical AI Dashboard" width="100%" />
+  <img src="https://raw.githubusercontent.com/Shikhar-Kesharwani/chest_heart_detection/main/static/images/medical_ai_banner.png" alt="Medical AI Dashboard" width="100%" />
 
   <br />
 
@@ -91,7 +91,7 @@ We use a standard enterprise `Makefile` workflow. Ensure you have Python 3.10+ i
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/AyushGU12/Respisense-ML.git
+git clone https://github.com/Shikhar-Kesharwani/chest_heart_detection.git
 cd Respisense-ML
 ```
 
@@ -122,8 +122,8 @@ make docker-run
 
 ## 👨‍💻 Author & Contact
 
-**AyushGU12**  
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat-square&logo=github)](https://github.com/AyushGU12)
+**Shikhar-Kesharwani**  
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat-square&logo=github)](https://github.com/Shikhar-Kesharwani)
 
 *This project is built under strict MLOps and HIPAA data-privacy standards. All medical datasets and raw model weights are explicitly ignored via `.gitignore`.*
 
