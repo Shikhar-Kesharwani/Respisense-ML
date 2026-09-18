@@ -1,3 +1,4 @@
+import os
 from PIL import Image, ImageStat
 import numpy as np
 import glob
@@ -28,7 +29,11 @@ def check_image(path):
     return f"Color Variance: {color_diff_var:.2f}, Dark Pixels: {dark_pixels:.2%}"
 
 print("Checking a real CT Scan:")
-print(check_image(r"C:\Users\HP\Downloads\archive (1)\Data\test\normal\8 - Copy.png"))
+sample_ct = os.path.join("Artifacts", "Data_Ingestion", "Chest-CT-Scan-data", "Normal", "test_normal_10.png")
+if os.path.exists(sample_ct):
+    print(check_image(sample_ct))
+else:
+    print(f"Sample scan not found at {sample_ct}")
 
 print("\nChecking the dummy internet scan (if it exists):")
 print(check_image("test_internet_scan.png"))

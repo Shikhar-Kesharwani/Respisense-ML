@@ -75,6 +75,8 @@ def healthcheck():
 def predictRoute():
     try:
         app_instance = get_client_app()
+        if not request.is_json or 'image' not in request.json:
+            return jsonify([{"image": "Error: Invalid payload. JSON with 'image' key required."}]), 400
         image = request.json['image']
         decodeImage(image, app_instance.filename)
         result = app_instance.classifier.predict()
@@ -82,7 +84,11 @@ def predictRoute():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify([{"image": f"Error: {str(e)}"}]), 500
+        if os.environ.get("FLASK_ENV") == "development" or app.debug:
+            err_msg = f"Error: {str(e)}"
+        else:
+            err_msg = "Error: An internal error occurred during prediction."
+        return jsonify([{"image": err_msg}]), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
